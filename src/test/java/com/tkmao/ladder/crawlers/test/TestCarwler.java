@@ -1,4 +1,4 @@
-package com.tkmao.ladder.crawler.test;
+package com.tkmao.ladder.crawlers.test;
 
 /**
  * Description:
