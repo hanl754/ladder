@@ -1,12 +1,8 @@
 package com.tkmao.ladder;
 
+import com.tkmao.ladder.data.Ladderable;
 import edu.uci.ics.crawler4j.crawler.Page;
-import edu.uci.ics.crawler4j.parser.HtmlParseData;
-import edu.uci.ics.crawler4j.parser.ParseData;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-
-import java.util.regex.Pattern;
 
 /**
  * Description: 爬虫处理基类
@@ -14,43 +10,20 @@ import java.util.regex.Pattern;
  * @time 2018/9/7 下午10:06
  */
 public interface Handler {
-    /**
-     * 默认不需要匹配原则
-     */
-    Pattern FILTERS = Pattern.compile(".*(\\.(css|js|bmp|gif|jpe?g|ico"
-            + "|png|tiff?|mid|mp2|mp3|mp4" + "|wav|avi|mov|mpeg|ram|m4v|pdf" + "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
+
 
     /**
-     * 默认的页面处理方式：如果能处理这个页面
-     * @param page url地址
+     * 处理页面
+     * @param $
+     * @return 返回一个可以被天梯化的对象（感觉自己正在猪化）
      */
-    default void handle(Page page) {
-        String url = page.getWebURL().getURL();
-        if(support(url)) {
-            ParseData parseData = page.getParseData();
-            //ParseData包含三种：Binary、HTML、Text，这里只处理html页面
-            if (parseData instanceof HtmlParseData) {
-                HtmlParseData htmlParseData = (HtmlParseData) parseData;
-                String html = htmlParseData.getHtml();
-                //用jsoup解析原始html
-                Document doc = Jsoup.parse(html);
-                //处理文档
-                dumpData(url, doc);
-            }
-        }
-    }
+    Ladderable handle(Document $);
+
 
     /**
-     * 解析并且存储需要的数据
-     * @param url url
-     * @param $ htmlDocument
+     * 尝试解析页面
+     * @param page
+     * @return 能处理返回document进行下一步处理, 不能处理返回null
      */
-    void dumpData(String url, Document $);
-
-    /**
-     * 是否支持这个页面的处理
-     * @param url
-     * @return
-     */
-    boolean support(String url);
+    Document tryIfParsable(Page page);
 }

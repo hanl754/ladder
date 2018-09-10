@@ -1,18 +1,20 @@
 package com.tkmao.ladder.crawlers;
 
-import com.tkmao.ladder.Handler;
+import com.tkmao.ladder.AutoRunnableCrawler;
+import com.tkmao.ladder.data.Ladderable;
+import com.tkmao.ladder.data.Notebook;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.crawler.Page;
-import edu.uci.ics.crawler4j.crawler.WebCrawler;
+import edu.uci.ics.crawler4j.parser.HtmlParseData;
+import edu.uci.ics.crawler4j.parser.ParseData;
 import edu.uci.ics.crawler4j.url.WebURL;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
-import javax.annotation.PostConstruct;
 import java.util.regex.Pattern;
 
 /**
@@ -23,75 +25,79 @@ import java.util.regex.Pattern;
  */
 @Service
 @Slf4j
-public class LenovoCrawler extends WebCrawler implements Handler {
-    /**
-     * 爬虫匹配的网址前缀
-     */
-    private static final Pattern URL_PREFIX = Pattern.compile("https://\\w+\\.lenovo\\.com\\.cn.+");
+public class LenovoCrawler extends AutoRunnableCrawler {
+    private static final Pattern suffixPattern = Pattern.compile(".+\\d+\\.html");
 
-    @Value("${each.crawler.thread}")
-    private int numberOfCrawlers;
-
-
-    @Autowired
-    private CrawlController controller;
-
-    @PostConstruct
-    public void init() {
-//        controller.addSeed("https://item.lenovo.com.cn/product/1001978.html");
-        controller.addSeed("https://tk.lenovo.com.cn/product/100716.html");
-        controller.addSeed("https://tk.lenovo.com.cn/product/100724.html");
-        controller.addSeed("https://tk.lenovo.com.cn/product/100456.html");
-        controller.start(this.getClass(), numberOfCrawlers);
+    @Override
+    public void addSeed(CrawlController controller) {
+        controller.addSeed("https://s.lenovo.com.cn/?key=&destination=&index=293&frompage=home");
     }
 
     @Override
-    public void dumpData(String url, Document $) {
-        //这里做一些过滤逻辑
-        String productName = $.select("#span_product_name").text();
-        if(productName.contains("笔记本")) {
-            String img = $.select("#winpic").attr("src");
-            String cpuModel = "";
-            String graphicModel = "";
-            String memorySize = "";
-            Elements colOnes = $.select("#box_configuration .col_one");
-            for(int i=0; i<colOnes.size(); i++) {
-                String keyName = colOnes.get(i).text();
-                if("CPU型号".equals(keyName) || "CPU".equals(keyName)) {
-                    cpuModel = colOnes.get(i+1).text();
-                }
-                if("系统内存".equals(keyName) || "内存容量".equals(keyName)) {
-                    memorySize = colOnes.get(i+1).text();
-                }
-                if("显示芯片".equals(keyName)) {
-                    graphicModel = colOnes.get(i+1).text();
-                }
+    public Ladderable handle(Document $) {
+        Notebook notebook = new Notebook();
+        String name = $.select("#span_product_name").text();
+        String diskSize = "";
+        String cpuModel = "";
+        String graphicModel = "";
+        String memorySize = "";
+        Elements colOnes = $.select("#box_configuration .col_one");
+        for(int i=0; i<colOnes.size(); i++) {
+            String keyName = colOnes.get(i).text();
+            if("CPU型号".equals(keyName) || "CPU".equals(keyName)) {
+                cpuModel = colOnes.get(i+1).text();
             }
-            log.info("url:{}, productName:{}, cpuModel:{}, memorySize:{}, graphicModel:{}", url, productName, cpuModel, memorySize,  graphicModel);
+            if("系统内存".equals(keyName) || "内存容量".equals(keyName)) {
+                memorySize = colOnes.get(i+1).text();
+            }
+            if("显示芯片".equals(keyName)) {
+                graphicModel = colOnes.get(i+1).text();
+            }
+            if("硬盘容量".equals(keyName)) {
+                diskSize = colOnes.get(i+1).text();
+            }
         }
-
+        notebook.setName(name);
+        notebook.setCpuModel(cpuModel);
+        notebook.setDiskSize(diskSize);
+        notebook.setGraphicModel(graphicModel);
+        notebook.setMemorySize(memorySize);
+        return notebook;
     }
 
     @Override
-    public boolean support(String url) {
-        return url.contains(".lenovo.com.cn/product");
+    public Document tryIfParsable(Page page) {
+        //url的一次过滤，只要后缀是数字.html的单品页
+        String url = page.getWebURL().getURL();
+        if(! suffixPattern.matcher(url).matches()) {
+            return null;
+        }
+        ParseData parseData = page.getParseData();
+        //ParseData包含三种：Binary、HTML、Text，这里只处理html页面
+        if (parseData instanceof HtmlParseData) {
+            HtmlParseData htmlParseData = (HtmlParseData) parseData;
+            String html = htmlParseData.getHtml();
+            //用jsoup解析原始html
+            Document $ = Jsoup.parse(html);
+            //内容过滤, 先只是简单的看一下商品名称
+            String productName = $.select("#span_product_name").text();
+            if(! StringUtils.isEmpty(productName) && productName.contains("笔记本")) {
+                return $;
+            }
+        }
+        return null;
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        log.info("[{}] start run.", this.getClass().getName());
-
+    public Pattern urlPrefix() {
+        //爬联想相关的页面
+        return Pattern.compile("https://\\w+\\.lenovo\\.com\\.cn.+");
     }
 
     @Override
-    public boolean shouldVisit(Page referringPage, WebURL url) {
-        final String href = url.getURL();
-        //不在过滤列表且前缀匹配
-        return !FILTERS.matcher(href).matches() && URL_PREFIX.matcher(href).matches();
-    }
+    protected void handlePageStatusCode(WebURL webUrl, int statusCode, String statusDescription) {
+        if(statusCode == 404) {
 
-    public void visit(Page page) {
-        handle(page);
+        }
     }
 }
