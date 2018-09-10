@@ -42,6 +42,7 @@ public class LenovoCrawler extends AutoRunnableCrawler {
         String graphicModel = "";
         String memorySize = "";
         Elements colOnes = $.select("#box_configuration .col_one");
+        // TODO: 2018/9/11 有些字段还是拿不到，针对页面定制一下 
         for(int i=0; i<colOnes.size(); i++) {
             String keyName = colOnes.get(i).text();
             if("CPU型号".equals(keyName) || "CPU".equals(keyName)) {
@@ -80,6 +81,7 @@ public class LenovoCrawler extends AutoRunnableCrawler {
             //用jsoup解析原始html
             Document $ = Jsoup.parse(html);
             //内容过滤, 先只是简单的看一下商品名称
+            // TODO: 2018/9/11 笔记本包也来了..
             String productName = $.select("#span_product_name").text();
             if(! StringUtils.isEmpty(productName) && productName.contains("笔记本")) {
                 return $;
