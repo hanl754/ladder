@@ -61,6 +61,10 @@ public abstract class AutoRunnableCrawler extends WebCrawler implements Handler 
         return !FILTERS.matcher(href).matches() && urlPrefix().matcher(href).matches();
     }
 
+    /**
+     * visit的逻辑就是尝试解析这个页面，如果是页面你的条件，就handle这个页面，生成{@link Ladderable}并持久化
+     * @param page
+     */
     public void visit(Page page) {
         Document doc = tryIfParsable(page);
         if(doc != null) {
