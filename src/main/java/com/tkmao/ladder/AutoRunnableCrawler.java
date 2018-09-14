@@ -1,6 +1,7 @@
 package com.tkmao.ladder;
 
 import com.tkmao.ladder.data.Ladderable;
+import com.tkmao.ladder.service.DumpService;
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.crawler.Page;
@@ -18,7 +19,7 @@ import javax.annotation.PostConstruct;
 import java.util.regex.Pattern;
 
 /**
- * Description:
+ * Description: Crawler基类，子类按照各自的需求实现{@link #addSeed}, {@link #getDumpService}, {@link #urlPrefix}
  *
  * @author hanliang
  * @time 2018/9/10 下午11:02
@@ -47,6 +48,12 @@ public abstract class AutoRunnableCrawler extends WebCrawler implements Handler 
      */
     public abstract void addSeed(CrawlController controller);
 
+    /**
+     * 对应的持久化服务
+     * @return
+     */
+    public abstract DumpService<Ladderable> getDumpService();
+
     @Override
     public void onStart() {
         super.onStart();
@@ -66,11 +73,11 @@ public abstract class AutoRunnableCrawler extends WebCrawler implements Handler 
      * @param page
      */
     public void visit(Page page) {
-        Document doc = tryIfParsable(page);
+        Document doc = parsable(page);
         if(doc != null) {
             Ladderable ladderable = handle(doc);
             if(ladderable != null) {
-                ladderable.dump();
+                getDumpService().dump(ladderable);
             }
         }
     }
@@ -93,5 +100,6 @@ public abstract class AutoRunnableCrawler extends WebCrawler implements Handler 
         addSeed(controller);
         controller.start(this.getClass(), numberOfCrawlers);
     }
+
 
 }

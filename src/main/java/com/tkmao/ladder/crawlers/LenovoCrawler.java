@@ -3,6 +3,7 @@ package com.tkmao.ladder.crawlers;
 import com.tkmao.ladder.AutoRunnableCrawler;
 import com.tkmao.ladder.data.Ladderable;
 import com.tkmao.ladder.data.Notebook;
+import com.tkmao.ladder.service.DumpService;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
@@ -15,6 +16,7 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import java.util.regex.Pattern;
 
 /**
@@ -27,6 +29,9 @@ import java.util.regex.Pattern;
 @Slf4j
 public class LenovoCrawler extends AutoRunnableCrawler {
     private static final Pattern suffixPattern = Pattern.compile(".+\\d+\\.html");
+
+    @Resource
+    private DumpService<Ladderable> notebookDumpService;
 
     @Override
     public void addSeed(CrawlController controller) {
@@ -67,7 +72,7 @@ public class LenovoCrawler extends AutoRunnableCrawler {
     }
 
     @Override
-    public Document tryIfParsable(Page page) {
+    public Document parsable(Page page) {
         //url的一次过滤，只要后缀是数字.html的单品页
         String url = page.getWebURL().getURL();
         if(! suffixPattern.matcher(url).matches()) {
@@ -88,6 +93,11 @@ public class LenovoCrawler extends AutoRunnableCrawler {
             }
         }
         return null;
+    }
+
+    @Override
+    public DumpService<Ladderable> getDumpService() {
+        return this.notebookDumpService;
     }
 
     @Override

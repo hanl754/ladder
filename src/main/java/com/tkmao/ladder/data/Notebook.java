@@ -1,7 +1,6 @@
 package com.tkmao.ladder.data;
 
 import lombok.Data;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -43,10 +42,5 @@ public class Notebook extends Ladderable{
                 ", memorySize='" + memorySize + '\'' +
                 ", diskSize='" + diskSize + '\'' +
                 '}';
-    }
-
-    @Override
-    public void dump() {
-       log.info("{}", this.toString());
     }
 }

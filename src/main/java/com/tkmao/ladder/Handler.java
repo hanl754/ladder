@@ -13,7 +13,7 @@ public interface Handler {
 
 
     /**
-     * 处理页面，只有{@link Handler#tryIfParsable(Page)} 有返回时才调用此方法
+     * 处理页面，只有{@link Handler#parsable(Page)} 有返回时才调用此方法
      * {@link AutoRunnableCrawler#visit(Page)}
      * @param $
      * @return 返回一个可以被天梯化的对象（感觉自己正在猪化）
@@ -26,5 +26,5 @@ public interface Handler {
      * @param page
      * @return 能处理返回document进行下一步处理, 不能处理返回null
      */
-    Document tryIfParsable(Page page);
+    Document parsable(Page page);
 }
