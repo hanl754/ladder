@@ -20,8 +20,8 @@ import org.springframework.util.StringUtils;
 import java.util.regex.Pattern;
 
 /**
- * Description: 一定不要@Service，这不是spring管理的，是AutoRunnableCrawler
- *
+ * Description: 一定不要@Autowired,@Resource之类的自动注入，这不是spring管理的，是AutoRunnableCrawler中init时候new出来的。
+ * 开多少个线程就会new多少个对应的Crawler
  * @author hanliang
  * @time 2018/9/8 下午11:47
  */
