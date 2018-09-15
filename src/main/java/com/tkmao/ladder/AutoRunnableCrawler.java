@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
  * @time 2018/9/10 下午11:02
  */
 @Slf4j
-public abstract class AutoRunnableCrawler extends WebCrawler implements Handler {
+public abstract class AutoRunnableCrawler<T extends Ladderable> extends WebCrawler implements Handler<T> {
     @Value("${each.crawler.thread}")
     protected int numberOfCrawlers;
     @Autowired
@@ -52,7 +52,7 @@ public abstract class AutoRunnableCrawler extends WebCrawler implements Handler 
      * 对应的持久化服务
      * @return
      */
-    public abstract DumpService<Ladderable> getDumpService();
+    public abstract DumpService<T> getDumpService();
 
     @Override
     public void onStart() {
@@ -75,7 +75,7 @@ public abstract class AutoRunnableCrawler extends WebCrawler implements Handler 
     public void visit(Page page) {
         Document doc = parsable(page);
         if(doc != null) {
-            Ladderable ladderable = handle(doc);
+            T ladderable = handle(doc);
             if(ladderable != null) {
                 getDumpService().dump(ladderable);
             }
@@ -98,7 +98,7 @@ public abstract class AutoRunnableCrawler extends WebCrawler implements Handler 
             throw new RuntimeException(e);
         }
         addSeed(controller);
-        controller.start(this.getClass(), numberOfCrawlers);
+        controller.startNonBlocking(this.getClass(), numberOfCrawlers);
     }
 
 

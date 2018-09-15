@@ -9,7 +9,7 @@ import org.jsoup.nodes.Document;
  * @author hanliang
  * @time 2018/9/7 下午10:06
  */
-public interface Handler {
+public interface Handler<T extends Ladderable> {
 
 
     /**
@@ -18,7 +18,7 @@ public interface Handler {
      * @param $
      * @return 返回一个可以被天梯化的对象（感觉自己正在猪化）
      */
-    Ladderable handle(Document $);
+    T handle(Document $);
 
 
     /**

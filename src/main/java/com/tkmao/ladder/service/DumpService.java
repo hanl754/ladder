@@ -13,5 +13,5 @@ public interface DumpService<T extends  Ladderable> {
      * 持久化
      * @param ladderable
      */
-    void  dump(T ladderable);
+    void dump(T ladderable);
 }

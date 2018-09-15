@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
  * @author hanliang
  * @time 2018/9/14 下午7:10
  */
-@Service("notebookDumpService")
 @Slf4j
+@Service("notebookDumpService")
 public class NoteBookDumpService implements DumpService<Notebook> {
 
     @Override
@@ -20,3 +20,4 @@ public class NoteBookDumpService implements DumpService<Notebook> {
         log.info("{}", notebook);
     }
 }
+

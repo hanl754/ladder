@@ -1,9 +1,10 @@
 package com.tkmao.ladder.crawlers;
 
 import com.tkmao.ladder.AutoRunnableCrawler;
-import com.tkmao.ladder.data.Ladderable;
 import com.tkmao.ladder.data.Notebook;
 import com.tkmao.ladder.service.DumpService;
+import com.tkmao.ladder.service.impl.NoteBookDumpService;
+import com.tkmao.ladder.util.ApplicationContextHolder;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
@@ -16,22 +17,20 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
 import java.util.regex.Pattern;
 
 /**
- * Description:
+ * Description: 一定不要@Service，这不是spring管理的，是AutoRunnableCrawler
  *
  * @author hanliang
  * @time 2018/9/8 下午11:47
  */
-@Service
 @Slf4j
-public class LenovoCrawler extends AutoRunnableCrawler {
+@Service
+public class LenovoCrawler extends AutoRunnableCrawler<Notebook> {
     private static final Pattern suffixPattern = Pattern.compile(".+\\d+\\.html");
 
-    @Resource
-    private DumpService<Ladderable> notebookDumpService;
+    private NoteBookDumpService noteBookDumpService;
 
     @Override
     public void addSeed(CrawlController controller) {
@@ -39,7 +38,7 @@ public class LenovoCrawler extends AutoRunnableCrawler {
     }
 
     @Override
-    public Ladderable handle(Document $) {
+    public Notebook handle(Document $) {
         Notebook notebook = new Notebook();
         String name = $.select("#span_product_name").text();
         String diskSize = "";
@@ -96,8 +95,11 @@ public class LenovoCrawler extends AutoRunnableCrawler {
     }
 
     @Override
-    public DumpService<Ladderable> getDumpService() {
-        return this.notebookDumpService;
+    public DumpService<Notebook> getDumpService() {
+        if(this.noteBookDumpService == null) {
+            this.noteBookDumpService = ApplicationContextHolder.getBean(NoteBookDumpService.class);
+        }
+        return this.noteBookDumpService;
     }
 
     @Override
