@@ -33,6 +33,11 @@ public class LenovoCrawler extends AutoRunnableCrawler<Notebook> {
     private NoteBookDumpService noteBookDumpService;
 
     @Override
+    public boolean shouldVisit(String url) {
+        return urlPrefix().matcher(url).matches();
+    }
+
+    @Override
     public void addSeed(CrawlController controller) {
         controller.addSeed("https://s.lenovo.com.cn/?key=&destination=&index=293&frompage=home");
     }
@@ -46,7 +51,7 @@ public class LenovoCrawler extends AutoRunnableCrawler<Notebook> {
         String graphicModel = "";
         String memorySize = "";
         Elements colOnes = $.select("#box_configuration .col_one");
-        // TODO: 2018/9/11 有些字段还是拿不到，针对页面定制一下 
+        // TODO: 2018/9/11 有些字段还是拿不到，针对页面定制一下
         for(int i=0; i<colOnes.size(); i++) {
             String keyName = colOnes.get(i).text();
             if("CPU型号".equals(keyName) || "CPU".equals(keyName)) {
@@ -102,7 +107,6 @@ public class LenovoCrawler extends AutoRunnableCrawler<Notebook> {
         return this.noteBookDumpService;
     }
 
-    @Override
     public Pattern urlPrefix() {
         //爬联想相关的页面
         return Pattern.compile("https://\\w+\\.lenovo\\.com\\.cn.+");

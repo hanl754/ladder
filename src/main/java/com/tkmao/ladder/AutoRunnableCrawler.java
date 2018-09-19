@@ -19,7 +19,7 @@ import javax.annotation.PostConstruct;
 import java.util.regex.Pattern;
 
 /**
- * Description: Crawler基类，子类按照各自的需求实现{@link #addSeed}, {@link #getDumpService}, {@link #urlPrefix}
+ * Description: Crawler基类，子类按照各自的需求实现{@link #addSeed}, {@link #getDumpService}, {@link #shouldVisit(String)}
  *
  * @author hanliang
  * @time 2018/9/10 下午11:02
@@ -38,9 +38,10 @@ public abstract class AutoRunnableCrawler<T extends Ladderable> extends WebCrawl
             + "|png|tiff?|mid|mp2|mp3|mp4" + "|wav|avi|mov|mpeg|ram|m4v|pdf" + "|rm|smil|wmv|swf|wma|zip|rar|gz|exe))$");
 
     /**
-     * 爬虫匹配的网址前缀
+     * 判断是否爬取这个url
      */
-    public abstract Pattern urlPrefix();
+    public abstract boolean shouldVisit(String url);
+
 
     /**
      * 入口
@@ -65,7 +66,7 @@ public abstract class AutoRunnableCrawler<T extends Ladderable> extends WebCrawl
     public boolean shouldVisit(Page referringPage, WebURL url) {
         final String href = url.getURL();
         //不在过滤列表且前缀匹配
-        return !FILTERS.matcher(href).matches() && urlPrefix().matcher(href).matches();
+        return !FILTERS.matcher(href).matches() && shouldVisit(url.getURL());
     }
 
     /**
